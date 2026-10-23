@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173b32">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Work & Pay">
+  <meta name="description" content="Private work time, leave and UK pay estimator.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>My Work & Pay</title>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">PRIVATE WORK TRACKER</p>
+      <h1>My Work & Pay</h1>
+      <p class="muted">Clock in. Track hours. Estimate pay.</p>
+    </div>
+    <button class="icon-button" id="settingsShortcut" aria-label="Open settings">⚙</button>
+  </header>
+
+  <main>
+    <section class="clock-card">
+      <div class="clock-card-head">
+        <div>
+          <span class="eyebrow light">CURRENT STATUS</span>
+          <h2 id="clockStatus">Not clocked in</h2>
+        </div>
+        <span class="status-dot" id="statusDot"></span>
+      </div>
+      <div class="live-time" id="liveTime">--:--:--</div>
+      <div class="clock-actions">
+        <button class="btn btn-light" id="clockInBtn">Clock in</button>
+        <button class="btn btn-outline-light" id="clockOutBtn" disabled>Clock out</button>
+      </div>
+      <p class="small light-muted" id="clockHint">Clock in to start a shift. Add breaks and edit details later.</p>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric">
+        <span class="metric-label">Hours this month</span>
+        <strong id="monthHours">0.0 h</strong>
+        <span class="metric-foot" id="monthShiftCount">0 shifts</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Estimated gross pay</span>
+        <strong id="monthGross">£0.00</strong>
+        <span class="metric-foot">Before deductions</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Estimated take-home</span>
+        <strong id="monthNet">£0.00</strong>
+        <span class="metric-foot">Tax, NI & pension estimate</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Paid leave remaining</span>
+        <strong id="leaveRemaining">—</strong>
+        <span class="metric-foot">Days, based on your settings</span>
+      </article>
+    </section>
+
+    <nav class="tabs" aria-label="App sections">
+      <button class="tab active" data-tab="dashboard">Overview</button>
+      <button class="tab" data-tab="shifts">Shifts</button>
+      <button class="tab" data-tab="leave">Leave</button>
+      <button class="tab" data-tab="reports">Pay report</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <section class="panel active" id="panel-dashboard">
+      <div class="section-title-row">
+        <div><h2>This month</h2><p class="muted">Your work and pay at a glance.</p></div>
+        <input type="month" id="dashboardMonth" aria-label="Select month">
+      </div>
+      <div class="quick-grid">
+        <button class="quick-action" id="addShiftShortcut"><span>＋</span><b>Add shift</b><small>Enter hours manually</small></button>
+        <button class="quick-action" id="addLeaveShortcut"><span>▦</span><b>Record leave</b><small>Paid or unpaid</small></button>
+        <button class="quick-action" id="exportShortcut"><span>⇩</span><b>Export backup</b><small>Save your data</small></button>
+      </div>
+      <div class="notice">
+        <strong>Estimate only</strong>
+        <p>Tax and take-home figures are estimates, not a payslip. Your tax code, cumulative PAYE, pension method, overtime rules and employer policies can change the actual result.</p>
+      </div>
+      <h3 class="subheading">Recent shifts</h3>
+      <div id="recentShifts" class="list"></div>
+    </section>
+
+    <section class="panel" id="panel-shifts">
+      <div class="section-title-row">
+        <div><h2>Shift records</h2><p class="muted">Edit or delete any record.</p></div>
+        <button class="btn btn-primary" id="addShiftBtn">＋ Add shift</button>
+      </div>
+      <div class="filter-row"><label for="shiftMonth">Month</label><input type="month" id="shiftMonth"></div>
+      <div id="shiftList" class="list"></div>
+    </section>
+
+    <section class="panel" id="panel-leave">
+      <div class="section-title-row">
+        <div><h2>Leave tracker</h2><p class="muted">Paid annual leave, unpaid leave and sick leave.</p></div>
+        <button class="btn btn-primary" id="addLeaveBtn">＋ Add leave</button>
+      </div>
+      <div class="leave-balance">
+        <div><span class="metric-label">Annual allowance</span><strong id="leaveAllowanceText">28 days</strong></div>
+        <div><span class="metric-label">Paid annual leave used</span><strong id="leaveUsedText">0 days</strong></div>
+        <div><span class="metric-label">Remaining</span><strong id="leaveBalanceText">28 days</strong></div>
+      </div>
+      <div id="leaveList" class="list"></div>
+      <p class="helper">Leave pay is estimated from the daily hours and hourly rate you set. Real holiday pay can depend on your working pattern and reference-period rules.</p>
+    </section>
+
+    <section class="panel" id="panel-reports">
+      <div class="section-title-row">
+        <div><h2>Monthly pay report</h2><p class="muted">Hours, gross pay and estimated deductions.</p></div>
+        <input type="month" id="reportMonth" aria-label="Report month">
+      </div>
+      <div class="report-card">
+        <div class="report-line"><span>Paid shift hours</span><strong id="rHours">0.00 h</strong></div>
+        <div class="report-line"><span>Paid leave hours</span><strong id="rLeaveHours">0.00 h</strong></div>
+        <div class="report-line"><span>Unpaid leave days</span><strong id="rUnpaidDays">0</strong></div>
+        <div class="report-line"><span>Estimated gross pay</span><strong id="rGross">£0.00</strong></div>
+        <div class="report-line"><span>Estimated Income Tax</span><strong id="rTax">£0.00</strong></div>
+        <div class="report-line"><span>Estimated National Insurance</span><strong id="rNI">£0.00</strong></div>
+        <div class="report-line"><span>Estimated pension</span><strong id="rPension">£0.00</strong></div>
+        <div class="report-line total"><span>Estimated take-home</span><strong id="rNet">£0.00</strong></div>
+      </div>
+      <div class="notice"><strong>How the estimate works</strong><p>Income Tax is approximated using annualised monthly pay and England/Wales/Northern Ireland bands. Employee NI is estimated using monthly thresholds. This does not model cumulative PAYE, tax-code adjustments, student loans, benefits, multiple jobs or every pension arrangement.</p></div>
+      <button class="btn btn-secondary full-width" id="downloadCsvBtn">Export monthly report (CSV)</button>
+    </section>
+
+    <section class="panel" id="panel-settings">
+      <h2>Settings</h2>
+      <p class="muted">Set your normal pay assumptions. Changes apply to estimates.</p>
+      <form id="settingsForm" class="form-card">
+        <label>Hourly rate (£)<input id="hourlyRate" type="number" min="0" step="0.01" required inputmode="decimal"></label>
+        <label>Default paid hours per leave day<input id="dailyHours" type="number" min="0" max="24" step="0.25" required inputmode="decimal"></label>
+        <label>Annual paid leave allowance (days)<input id="leaveAllowance" type="number" min="0" step="0.5" required inputmode="decimal"></label>
+        <label>Employee pension contribution (%)<input id="pensionRate" type="number" min="0" max="100" step="0.1" required inputmode="decimal"></label>
+        <label>Pension tax treatment
+          <select id="pensionMethod">
+            <option value="netpay">Net pay arrangement (pension reduces taxable pay estimate)</option>
+            <option value="relief">Relief at source (basic-rate relief handled approximately)</option>
+            <option value="none">Do not adjust taxable pay for pension</option>
+          </select>
+        </label>
+        <label>Tax region
+          <select id="taxRegion">
+            <option value="england">England</option>
+            <option value="scotland">Scotland</option>
+            <option value="wales">Wales</option>
+            <option value="ni">Northern Ireland</option>
+          </select>
+        </label>
+        <label>Tax code (for your reference only)<input id="taxCode" type="text" placeholder="e.g. 1257L"></label>
+        <label>Default break minutes per shift<input id="defaultBreak" type="number" min="0" max="1440" step="1" required inputmode="numeric"></label>
+        <button class="btn btn-primary full-width" type="submit">Save settings</button>
+      </form>
+      <div class="settings-actions">
+        <button class="btn btn-secondary" id="exportBtn">Export full backup (JSON)</button>
+        <label class="btn btn-secondary file-button">Import backup (JSON)<input type="file" id="importFile" accept=".json,application/json"></label>
+        <button class="btn btn-danger" id="clearDataBtn">Delete all app data</button>
+      </div>
+      <p class="helper">Data is stored in this browser on this device. Export a backup regularly. Clearing Safari website data or changing browser/device can remove your records.</p>
+      <p class="helper">Tax year default: 2026/27. The estimator uses simplified assumptions and should not be used for tax filing or payroll decisions.</p>
+    </section>
+  </main>
+
+  <dialog id="shiftDialog">
+    <form method="dialog" id="shiftForm" class="dialog-form">
+      <div class="dialog-head"><h2 id="shiftDialogTitle">Add shift</h2><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <input type="hidden" id="shiftId">
+      <label>Date<input id="shiftDate" type="date" required></label>
+      <div class="two-col">
+        <label>Start time<input id="shiftStart" type="time" required></label>
+        <label>End time<input id="shiftEnd" type="time" required></label>
+      </div>
+      <label>Unpaid break (minutes)<input id="shiftBreak" type="number" min="0" max="1440" step="1" required></label>
+      <label>Hourly rate for this shift (£)<input id="shiftRate" type="number" min="0" step="0.01" required></label>
+      <label>Notes (optional)<input id="shiftNotes" type="text" maxlength="120" placeholder="e.g. night shift"></label>
+      <p class="helper">If the shift ends after midnight, enter the end time on the same form; the app will treat an end time earlier than start as the next day.</p>
+      <div class="dialog-actions"><button class="btn btn-secondary" value="cancel">Cancel</button><button class="btn btn-primary" id="saveShiftBtn" value="default" type="submit">Save shift</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="leaveDialog">
+    <form method="dialog" id="leaveForm" class="dialog-form">
+      <div class="dialog-head"><h2 id="leaveDialogTitle">Add leave</h2><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <input type="hidden" id="leaveId">
+      <label>Leave type<select id="leaveType"><option value="paid">Paid annual leave</option><option value="unpaid">Unpaid leave</option><option value="sick">Sick leave</option><option value="otherPaid">Other paid leave</option></select></label>
+      <label>Date<input id="leaveDate" type="date" required></label>
+      <label>Days<input id="leaveDays" type="number" min="0.25" step="0.25" value="1" required></label>
+      <label>Paid hours per day<input id="leaveHours" type="number" min="0" max="24" step="0.25" required></label>
+      <label>Pay treatment<select id="leavePaid"><option value="yes">Paid at my hourly rate</option><option value="no">Unpaid (no pay)</option></select></label>
+      <label>Notes (optional)<input id="leaveNotes" type="text" maxlength="120"></label>
+      <div class="dialog-actions"><button class="btn btn-secondary" value="cancel">Cancel</button><button class="btn btn-primary" id="saveLeaveBtn" value="default" type="submit">Save leave</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <footer><span>My Work & Pay</span><span>Private by default · Stored on this device</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
